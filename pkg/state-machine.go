@@ -6,13 +6,9 @@ import (
 )
 
 type OverlayModel struct {
-	Controller string
-	Name       string
-	State      bool
-
-	Red   int
-	Green int
-	Blue  int
+	Name     string
+	State    bool
+	RGBColor []int
 }
 
 type StateMachine struct {
@@ -20,64 +16,60 @@ type StateMachine struct {
 	Callback      OnStateChange
 }
 
-type OnStateChange func(OverlayModel)
+type OnStateChange func(string, OverlayModel)
 
-func (sm *StateMachine) generateSlug(controller, name string) string {
+func (sm *StateMachine) GenerateSlug(controller, name string) string {
 	return strcase.ToSnake(name)
 }
 
-func (sm *StateMachine) UpdateState(controller, name string, state bool) {
-	slug := sm.generateSlug(controller, name)
+func (sm *StateMachine) UpdateBySlug(slug, name string, state bool, rgbColor []int) {
 	existing, exists := sm.OverlayModels.Load(slug)
 
-	newCopy := OverlayModel{}
-	oldCopy := OverlayModel{}
+	var newCopy OverlayModel
+	var oldCopy OverlayModel
 
 	if !exists {
-		oldCopy = OverlayModel{}
 		newCopy = OverlayModel{
-			Controller: controller,
-			Name:       name,
-			State:      state,
+			Name:  name,
+			State: state,
+		}
+
+		if len(rgbColor) == 3 {
+			newCopy.RGBColor = rgbColor
 		}
 	} else {
 		oldCopy = existing.(OverlayModel)
 		newCopy = oldCopy
+
+		if name != "" {
+			newCopy.Name = name
+		}
+
 		newCopy.State = state
-	}
 
-	sm.OverlayModels.Store(slug, newCopy)
-	if newCopy.State != oldCopy.State {
-		sm.Callback(newCopy)
-	}
-}
-
-func (sm *StateMachine) UpdateColor(controller, name string, red, green, blue int) {
-	slug := sm.generateSlug(controller, name)
-	existing, exists := sm.OverlayModels.Load(slug)
-
-	newCopy := OverlayModel{}
-	oldCopy := OverlayModel{}
-
-	if !exists {
-		oldCopy = OverlayModel{}
-		newCopy = OverlayModel{
-			Controller: controller,
-			Name:       name,
-			Red:        red,
-			Green:      green,
-			Blue:       blue,
+		if len(rgbColor) == 3 {
+			newCopy.RGBColor = rgbColor
 		}
-	} else {
-		oldCopy = existing.(OverlayModel)
-		newCopy = oldCopy
-		newCopy.Red = red
-		newCopy.Green = green
-		newCopy.Blue = blue
 	}
 
 	sm.OverlayModels.Store(slug, newCopy)
-	if (newCopy.Red != oldCopy.Red) || (newCopy.Green != oldCopy.Green) || (newCopy.Blue != oldCopy.Blue) {
-		sm.Callback(newCopy)
+
+	statesChanged := newCopy.State != oldCopy.State
+	colorsChanged := false
+
+	if len(newCopy.RGBColor) != len(oldCopy.RGBColor) {
+		colorsChanged = true
+	} else if len(newCopy.RGBColor) == 3 {
+		if newCopy.RGBColor[0] != oldCopy.RGBColor[0] {
+			colorsChanged = true
+		} else if newCopy.RGBColor[1] != oldCopy.RGBColor[1] {
+			colorsChanged = true
+		} else if newCopy.RGBColor[2] != oldCopy.RGBColor[2] {
+			colorsChanged = true
+		}
+	}
+
+	if statesChanged || colorsChanged {
+		sm.Callback(slug, newCopy)
 	}
 }

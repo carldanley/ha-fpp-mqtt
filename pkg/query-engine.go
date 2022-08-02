@@ -32,6 +32,8 @@ func (qe *QueryEngine) Stop() {
 }
 
 func (qe *QueryEngine) Start() error {
+	qe.Log.Info("Starting up!")
+
 	if len(qe.Controllers) == 0 {
 		return errors.New("query engine controller list must have at least 1 index")
 	}
@@ -54,7 +56,7 @@ func (qe *QueryEngine) runLoop() {
 	for {
 		select {
 		case <-qe.stopChannel:
-			qe.Log.Debug("Exiting query engine loop")
+			qe.Log.Debug("Shutting down; exiting loop!")
 			return
 		case <-time.After(qe.Interval):
 			qe.queryControllers()
@@ -126,6 +128,7 @@ func (qe *QueryEngine) updateStateMachineWithControllerData(controller string, d
 			state = true
 		}
 
-		qe.StateMachine.UpdateState(controller, overlayModel.Name, state)
+		slug := qe.StateMachine.GenerateSlug(controller, overlayModel.Name)
+		qe.StateMachine.UpdateBySlug(slug, overlayModel.Name, state, []int{})
 	}
 }

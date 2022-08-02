@@ -53,12 +53,17 @@ mqtt:
   light:
   - name: backyard_back_fence_palm_flood_middle
     schema: template
-    state_topic: "alfred/backyard-back-fence-palm-flood-middle/status"
+    state_topic: "alfred/ha-fpp-mqtt/backyard_back_fence_palm_flood_middle/status"
     state_template: "{{ value_json.state }}"
-    command_topic: "alfred/backyard-back-fence-palm-flood-middle/set"
-    command_off_template: '{"state": "off"}'
+    command_topic: "alfred/ha-fpp-mqtt/backyard_back_fence_palm_flood_middle/set"
+    command_off_template: >
+      {
+        "controller": "backyard-kulp-2",
+        "state": "off"
+      }
     command_on_template: >
       {
+        "controller": "backyard-kulp-2",
         "state": "on"
         {%- if red is defined and green is defined and blue is defined -%}
         , "color": [{{ red }}, {{ green }}, {{ blue }}]

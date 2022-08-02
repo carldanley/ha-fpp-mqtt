@@ -4,13 +4,9 @@ import (
 	"flag"
 	"os"
 	"os/signal"
-	"strconv"
-	"strings"
 	"syscall"
-	"time"
 
 	"git.r1p.io/alfred/ha-fpp-mqtt/pkg"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
 )
@@ -54,52 +50,25 @@ func init() {
 	}
 }
 
-func parseControllerList() []string {
-	controllers := []string{}
-	parts := strings.Split(os.Getenv("CONTROLLER_LIST"), ",")
-
-	for _, controller := range parts {
-		controller = strings.ReplaceAll(controller, " ", "")
-		controllers = append(controllers, controller)
-	}
-
-	return controllers
-}
-
-func parseQueryInterval() time.Duration {
-	secondsString, ok := os.LookupEnv("QUERY_INTERVAL_SECONDS")
-	if !ok {
-		return time.Second
-	}
-
-	seconds, err := strconv.Atoi(secondsString)
-	if err != nil {
-		return time.Second
-	}
-
-	return time.Second * time.Duration(seconds)
-}
-
-func publishOverlayModelStatus(model pkg.OverlayModel) {
-	spew.Dump(model)
-}
-
 func main() {
-	// grab the list of controllers we need to monitor state for
-	controllers := parseControllerList()
-	if len(controllers) == 0 {
-		log.Fatal("invalid controller list")
-	}
+	// get the config first
+	cfg := pkg.GetConfig()
+
+	// setup an mqtt client
+	mqttClient := pkg.NewMQTTClient(
+		log, cfg.MQTTHost, cfg.MQTTPort, cfg.MQTTClientID,
+		cfg.MQTTUsername, cfg.MQTTPassword, cfg.MQTTTopicPrefix,
+	)
 
 	// create a new state machine
 	stateMachine := pkg.StateMachine{
-		Callback: publishOverlayModelStatus,
+		Callback: mqttClient.PublishOverlayModelStatus,
 	}
 
 	// create a new query engine
 	queryEngine := pkg.QueryEngine{
-		Controllers:  controllers,
-		Interval:     parseQueryInterval(),
+		Controllers:  cfg.Controllers,
+		Interval:     cfg.QueryInterval,
 		StateMachine: &stateMachine,
 		Log:          log.WithField("component", "queryEngine"),
 	}
@@ -109,7 +78,15 @@ func main() {
 		log.WithError(err).Fatal("Could not start query engine")
 	}
 
+	// startup the mqtt client
+	if err := mqttClient.Start(&stateMachine); err != nil {
+		log.WithError(err).Fatal("Could not start mqtt client")
+	}
+
 	// wait for an interrupt signal
 	<-signalChannel
+
+	// shut down everything else
 	queryEngine.Stop()
+	mqttClient.Stop()
 }
