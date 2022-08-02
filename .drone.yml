@@ -6,7 +6,7 @@ steps:
 - name: lint-code
   image: golang:alpine
   commands:
-  - go install golang.org/x/lint/golint
+  - go get golang.org/x/lint/golint
   - golint -set_exit_status ./
 
 - name: build-code
