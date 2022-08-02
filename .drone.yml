@@ -1,0 +1,64 @@
+kind: pipeline
+type: docker
+name: default
+
+steps:
+- name: lint-code
+  image: golang:alpine
+  commands:
+  - go install golang.org/x/lint/golint
+  - golint -set_exit_status ./
+
+- name: build-code
+  image: golang:alpine
+  environment:
+    CGO_ENABLED: 0
+    GOOS: linux
+  commands:
+  - go build -a -installsuffix cgo -o ha-fpp-mqtt
+  when:
+    ref:
+    - refs/tags/*
+  depends_on:
+  - lint-code
+
+- name: publish-container
+  image: banzaicloud/drone-kaniko
+  settings:
+    repo: alfred/ha-fpp-mqtt
+    registry: reg.r1p.io
+    auto_tag: true
+    username:
+      from_secret: docker-username
+    password:
+      from_secret: docker-password
+    build_args:
+    - COMMIT_SHA=${DRONE_COMMIT_SHA}
+    - COMMIT_AUTHOR_EMAIL=${DRONE_COMMIT_AUTHOR_EMAIL}
+  when:
+    ref:
+    - refs/tags/*
+  depends_on:
+  - build-code
+
+- name: deploy
+  image: appleboy/drone-ssh
+  settings:
+    host:
+      from_secret: ssh-host
+    port:
+      from_secret: ssh-port
+    key:
+      from_secret: ssh-key
+    username:
+      from_secret: ssh-username
+    script_stop: true
+    script:
+    - docker-compose -f /home/$(whoami)/services.yaml pull alfred
+    - docker-compose -f /home/$(whoami)/services.yaml up -d alfred
+    - docker image prune --all --force
+  when:
+    ref:
+    - refs/tags/*
+  depends_on:
+  - publish-container
