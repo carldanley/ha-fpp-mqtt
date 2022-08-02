@@ -2,6 +2,8 @@
 
 > Home Assistant Falcon Player MQTT
 
+[![Build Status](https://ci.r1p.io/api/badges/alfred/ha-fpp-mqtt/status.svg)](https://ci.r1p.io/alfred/ha-fpp-mqtt)
+
 ## About
 
 This is a project that monitors the state of the overlay models in any given controller running Falcon Player. The objective is to query the state of the overlay models on a regular interval and report status changes (if any). This project also accepts commands and translates them back into falcon player mqtt messages accordingly.
