@@ -126,18 +126,28 @@ func (mc *MQTTClient) HandleSetLightMessage(slug string, payload LightMessage) {
 		return
 	}
 
-	currentState, exists := mc.stateMachine.OverlayModels.Load(slug)
+	currentStateObj, exists := mc.stateMachine.OverlayModels.Load(slug)
 	if !exists {
 		mc.Log.Debug("Skipping set with no cache available")
 		return
 	}
+
+	currentState := currentStateObj.(OverlayModel)
 
 	newState := "0"
 	if strings.ToLower(payload.State) == "on" {
 		newState = "1"
 	}
 
+	// default to white
 	color := "#ffffff"
+
+	// if there was a color cached, default to it
+	if len(currentState.RGBColor) == 3 {
+		color = fmt.Sprintf("#%02x%02x%02x", currentState.RGBColor[0], currentState.RGBColor[1], currentState.RGBColor[2])
+	}
+
+	// finally, use the specified color in the payload
 	if len(payload.RGBColor) == 3 {
 		color = fmt.Sprintf("#%02x%02x%02x", payload.RGBColor[0], payload.RGBColor[1], payload.RGBColor[2])
 	}
@@ -146,13 +156,13 @@ func (mc *MQTTClient) HandleSetLightMessage(slug string, payload LightMessage) {
 	message := FalconMessage{
 		Command: "Overlay Model Fill",
 		Args: []string{
-			currentState.(OverlayModel).Name,
+			currentState.Name,
 			newState,
 			color,
 		},
 	}
 
-	mc.Log.Infof("Updating light: %s", currentState.(OverlayModel).Name)
+	mc.Log.Infof("Updating light: %s", currentState.Name)
 	data, _ := json.Marshal(message)
 	go mc.GetClient().Publish(topic, 0, false, data)
 
