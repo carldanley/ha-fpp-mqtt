@@ -54,8 +54,8 @@ steps:
       from_secret: ssh-username
     script_stop: true
     script:
-    - docker-compose -f /home/$(whoami)/services.yaml pull hq-fpp-mqtt
-    - docker-compose -f /home/$(whoami)/services.yaml up -d hq-fpp-mqtt
+    - docker-compose -f /home/$(whoami)/services.yaml pull ha-fpp-mqtt
+    - docker-compose -f /home/$(whoami)/services.yaml up -d ha-fpp-mqtt
     - docker image prune --all --force
   when:
     ref:
