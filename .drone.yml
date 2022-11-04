@@ -46,24 +46,24 @@ steps:
   depends_on:
   - build-code
 
-- name: deploy
-  image: appleboy/drone-ssh
-  settings:
-    host:
-      from_secret: ssh-host
-    port:
-      from_secret: ssh-port
-    key:
-      from_secret: ssh-key
-    username:
-      from_secret: ssh-username
-    script_stop: true
-    script:
-    - docker-compose -f /home/$(whoami)/services.yaml pull ha-fpp-mqtt
-    - docker-compose -f /home/$(whoami)/services.yaml up -d ha-fpp-mqtt
-    - docker image prune --all --force
-  when:
-    ref:
-    - refs/tags/*
-  depends_on:
-  - publish-container
+# - name: deploy
+#   image: appleboy/drone-ssh
+#   settings:
+#     host:
+#       from_secret: ssh-host
+#     port:
+#       from_secret: ssh-port
+#     key:
+#       from_secret: ssh-key
+#     username:
+#       from_secret: ssh-username
+#     script_stop: true
+#     script:
+#     - docker-compose -f /home/$(whoami)/services.yaml pull ha-fpp-mqtt
+#     - docker-compose -f /home/$(whoami)/services.yaml up -d ha-fpp-mqtt
+#     - docker image prune --all --force
+#   when:
+#     ref:
+#     - refs/tags/*
+#   depends_on:
+#   - publish-container
