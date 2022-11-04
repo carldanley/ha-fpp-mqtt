@@ -30,7 +30,7 @@ steps:
 - name: publish-container
   image: plugins/docker
   settings:
-    repo: alfred/ha-fpp-mqtt
+    repo: reg.r1p.io/alfred/ha-fpp-mqtt
     registry: reg.r1p.io
     auto_tag: true
     username:
