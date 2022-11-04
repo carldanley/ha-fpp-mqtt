@@ -22,11 +22,8 @@ func (sm *StateMachine) GenerateSlug(controller, name string) string {
 	return strcase.ToSnake(name)
 }
 
-func (sm *StateMachine) UpdateBySlug(slug, name string, state bool, rgbColor []int) {
+func (sm *StateMachine) createNewCopy(slug, name string, state bool, rgbColor []int) (newCopy, oldCopy OverlayModel) {
 	existing, exists := sm.OverlayModels.Load(slug)
-
-	var newCopy OverlayModel
-	var oldCopy OverlayModel
 
 	if !exists {
 		newCopy = OverlayModel{
@@ -34,7 +31,7 @@ func (sm *StateMachine) UpdateBySlug(slug, name string, state bool, rgbColor []i
 			State: state,
 		}
 
-		if len(rgbColor) == 3 {
+		if len(rgbColor) == ExpectedColorCount {
 			newCopy.RGBColor = rgbColor
 		}
 	} else {
@@ -47,10 +44,16 @@ func (sm *StateMachine) UpdateBySlug(slug, name string, state bool, rgbColor []i
 
 		newCopy.State = state
 
-		if len(rgbColor) == 3 {
+		if len(rgbColor) == ExpectedColorCount {
 			newCopy.RGBColor = rgbColor
 		}
 	}
+
+	return newCopy, oldCopy
+}
+
+func (sm *StateMachine) UpdateBySlug(slug, name string, state bool, rgbColor []int) {
+	newCopy, oldCopy := sm.createNewCopy(slug, name, state, rgbColor)
 
 	sm.OverlayModels.Store(slug, newCopy)
 
@@ -59,7 +62,7 @@ func (sm *StateMachine) UpdateBySlug(slug, name string, state bool, rgbColor []i
 
 	if len(newCopy.RGBColor) != len(oldCopy.RGBColor) {
 		colorsChanged = true
-	} else if len(newCopy.RGBColor) == 3 {
+	} else if len(newCopy.RGBColor) == ExpectedColorCount {
 		if newCopy.RGBColor[0] != oldCopy.RGBColor[0] {
 			colorsChanged = true
 		} else if newCopy.RGBColor[1] != oldCopy.RGBColor[1] {

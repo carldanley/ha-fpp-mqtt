@@ -7,6 +7,8 @@ import (
 	"time"
 )
 
+const DefaultMQTTPort = 1883
+
 type Config struct {
 	Controllers   []string
 	QueryInterval time.Duration
@@ -34,7 +36,7 @@ func GetConfig() Config {
 	}
 }
 
-func (c Config) GetControllerList() []string {
+func (c *Config) GetControllerList() []string {
 	controllers := []string{}
 	parts := strings.Split(os.Getenv("CONTROLLER_LIST"), ",")
 
@@ -46,7 +48,7 @@ func (c Config) GetControllerList() []string {
 	return controllers
 }
 
-func (c Config) GetQueryInterval() time.Duration {
+func (c *Config) GetQueryInterval() time.Duration {
 	secondsString, ok := os.LookupEnv("QUERY_INTERVAL_SECONDS")
 	if !ok {
 		return time.Second
@@ -60,25 +62,25 @@ func (c Config) GetQueryInterval() time.Duration {
 	return time.Second * time.Duration(seconds)
 }
 
-func (c Config) GetMQTTHost() string {
+func (c *Config) GetMQTTHost() string {
 	return os.Getenv("MQTT_HOST")
 }
 
-func (c Config) GetMQTTPort() int {
+func (c *Config) GetMQTTPort() int {
 	tmp, exists := os.LookupEnv("MQTT_PORT")
 	if !exists {
-		return 1883
+		return DefaultMQTTPort
 	}
 
 	port, err := strconv.Atoi(tmp)
 	if err != nil {
-		return 1883
+		return DefaultMQTTPort
 	}
 
 	return port
 }
 
-func (c Config) GetMQTTClientID() string {
+func (c *Config) GetMQTTClientID() string {
 	clientID := os.Getenv("MQTT_CLIENT_ID")
 
 	if clientID == "" {
@@ -88,15 +90,15 @@ func (c Config) GetMQTTClientID() string {
 	return clientID
 }
 
-func (c Config) GetMQTTUsername() string {
+func (c *Config) GetMQTTUsername() string {
 	return os.Getenv("MQTT_USERNAME")
 }
 
-func (c Config) GetMQTTPassword() string {
+func (c *Config) GetMQTTPassword() string {
 	return os.Getenv("MQTT_PASSWORD")
 }
 
-func (c Config) GetMQTTTopicPrefix() string {
+func (c *Config) GetMQTTTopicPrefix() string {
 	topicPrefix, exists := os.LookupEnv("MQTT_TOPIC_PREFIX")
 
 	if !exists {

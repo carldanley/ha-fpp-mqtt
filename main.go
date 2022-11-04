@@ -11,10 +11,16 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var signalChannel chan os.Signal
-var log *logrus.Logger
+const LogLevelError = 0
+const LogLevelWarn = 1
+const LogLevelInfo = 2
+const LogLevelDebug = 3
 
-func init() {
+func main() {
+	var signalChannel chan os.Signal
+
+	var log *logrus.Logger
+
 	// create our channel for signal interrupts
 	signalChannel = make(chan os.Signal, 1)
 	signal.Notify(signalChannel, os.Interrupt, syscall.SIGINT)
@@ -27,13 +33,13 @@ func init() {
 	log = logrus.New()
 	log.SetOutput(os.Stdout)
 	// set the log level
-	if *logLevel == 0 {
+	if *logLevel == LogLevelError {
 		log.SetLevel(logrus.ErrorLevel)
-	} else if *logLevel == 1 {
+	} else if *logLevel == LogLevelWarn {
 		log.SetLevel(logrus.WarnLevel)
-	} else if *logLevel == 2 {
+	} else if *logLevel == LogLevelInfo {
 		log.SetLevel(logrus.InfoLevel)
-	} else if *logLevel >= 3 {
+	} else if *logLevel >= LogLevelDebug {
 		log.SetLevel(logrus.DebugLevel)
 	}
 
@@ -45,12 +51,12 @@ func init() {
 
 	// attempt to load our .env file
 	log.WithField("location", envFileLocation).Debug("Loading environment file from location")
-	if err := godotenv.Load(envFileLocation); err != nil {
+
+	err := godotenv.Load(envFileLocation)
+	if err != nil {
 		log.WithError(err).Warn("Could not load environment file from location")
 	}
-}
 
-func main() {
 	// get the config first
 	cfg := pkg.GetConfig()
 

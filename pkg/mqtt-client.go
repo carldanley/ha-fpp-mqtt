@@ -9,6 +9,11 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+const ExpectedColorCount = 3
+const StateOn = "on"
+const StateOff = "off"
+const AutoDisconnectTime = 1000
+
 type MQTTClient struct {
 	Log          *logrus.Entry
 	client       MQTT.Client
@@ -34,6 +39,7 @@ func NewMQTTClient(log *logrus.Logger, host string, port int, clientID, username
 	}
 
 	mqttClient.client = mqttClient.getMQTTClient(host, port, clientID, username, password)
+
 	return &mqttClient
 }
 
@@ -73,9 +79,11 @@ func (mc *MQTTClient) getTopic(postfix string) string {
 }
 
 func (mc *MQTTClient) onMessage(client MQTT.Client, msg MQTT.Message) {
+	const ExpectedMessageParts = 3
+
 	topicParts := strings.Split(msg.Topic(), "/")
 
-	if len(topicParts) < 4 {
+	if len(topicParts) != ExpectedMessageParts {
 		return
 	}
 
@@ -100,7 +108,7 @@ func (mc *MQTTClient) Start(stateMachine *StateMachine) error {
 	mc.stateMachine = stateMachine
 
 	if token := mc.GetClient().Connect(); token.Wait() && token.Error() != nil {
-		return token.Error()
+		return fmt.Errorf("could not connect to mqtt server: %w", token.Error())
 	}
 
 	return nil
@@ -110,7 +118,7 @@ func (mc *MQTTClient) Stop() {
 	mc.Log.Debug("Shutting down...")
 
 	if mc.client.IsConnected() {
-		mc.GetClient().Disconnect(1000)
+		mc.GetClient().Disconnect(AutoDisconnectTime)
 	}
 
 	mc.Log.Debug("Shutdown!")
@@ -123,19 +131,21 @@ func (mc *MQTTClient) GetClient() MQTT.Client {
 func (mc *MQTTClient) HandleSetLightMessage(slug string, payload LightMessage) {
 	if payload.Controller == "" {
 		mc.Log.Debug("Skipping set with no controller specified")
+
 		return
 	}
 
 	currentStateObj, exists := mc.stateMachine.OverlayModels.Load(slug)
 	if !exists {
 		mc.Log.Debug("Skipping set with no cache available")
+
 		return
 	}
 
 	currentState := currentStateObj.(OverlayModel)
 
 	newState := "0"
-	if strings.ToLower(payload.State) == "on" {
+	if strings.EqualFold(payload.State, StateOn) {
 		newState = "1"
 	}
 
@@ -143,12 +153,12 @@ func (mc *MQTTClient) HandleSetLightMessage(slug string, payload LightMessage) {
 	color := "#ffffff"
 
 	// if there was a color cached, default to it
-	if len(currentState.RGBColor) == 3 {
+	if len(currentState.RGBColor) == ExpectedColorCount {
 		color = fmt.Sprintf("#%02x%02x%02x", currentState.RGBColor[0], currentState.RGBColor[1], currentState.RGBColor[2])
 	}
 
 	// finally, use the specified color in the payload
-	if len(payload.RGBColor) == 3 {
+	if len(payload.RGBColor) == ExpectedColorCount {
 		color = fmt.Sprintf("#%02x%02x%02x", payload.RGBColor[0], payload.RGBColor[1], payload.RGBColor[2])
 	}
 
@@ -163,7 +173,9 @@ func (mc *MQTTClient) HandleSetLightMessage(slug string, payload LightMessage) {
 	}
 
 	mc.Log.Infof("Updating light: %s", currentState.Name)
+
 	data, _ := json.Marshal(message)
+
 	go mc.GetClient().Publish(topic, 0, false, data)
 
 	boolState := false
@@ -175,21 +187,23 @@ func (mc *MQTTClient) HandleSetLightMessage(slug string, payload LightMessage) {
 }
 
 func (mc *MQTTClient) PublishOverlayModelStatus(slug string, model OverlayModel) {
-	state := "off"
+	state := StateOff
 	if model.State {
-		state = "on"
+		state = StateOn
 	}
 
 	payload := LightMessage{
 		State: state,
 	}
 
-	if len(model.RGBColor) == 3 {
+	if len(model.RGBColor) == ExpectedColorCount {
 		payload.RGBColor = model.RGBColor
 	}
 
 	mc.Log.Infof("Publishing light update: %s", model.Name)
+
 	data, _ := json.Marshal(payload)
 	topic := mc.getTopic(fmt.Sprintf("%s/status", slug))
+
 	go mc.GetClient().Publish(topic, 0, true, data)
 }

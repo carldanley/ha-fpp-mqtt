@@ -12,6 +12,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+var ErrorMustHaveOneIndex = errors.New("query engine controller list must have at least 1 index")
+var ErrorIntervalGreaterThanZero = errors.New("query engine interval must be greater than 1 second")
+var ErrorStateMachineNil = errors.New("query engine state machine must not be nil")
+
 type OverlayModelResponseData struct {
 	Name     string `json:"name"`
 	IsActive int    `json:"isActive"`
@@ -35,20 +39,22 @@ func (qe *QueryEngine) Start() error {
 	qe.Log.Info("Starting up!")
 
 	if len(qe.Controllers) == 0 {
-		return errors.New("query engine controller list must have at least 1 index")
+		return ErrorMustHaveOneIndex
 	}
 
 	if qe.Interval < time.Second {
-		return errors.New("query engine interval must be greater than 1 second")
+		return ErrorIntervalGreaterThanZero
 	}
 
 	if qe.StateMachine == nil {
-		return errors.New("query engine state machine must not be nil")
+		return ErrorStateMachineNil
 	}
 
 	qe.Log.Debugf("Starting loop every %v ...", qe.Interval)
 	qe.stopChannel = make(chan bool)
+
 	go qe.runLoop()
+
 	return nil
 }
 
@@ -57,9 +63,11 @@ func (qe *QueryEngine) runLoop() {
 		select {
 		case <-qe.stopChannel:
 			qe.Log.Debug("Shutting down; exiting loop!")
+
 			return
 		case <-time.After(qe.Interval):
 			qe.queryControllers()
+
 			continue
 		}
 	}
@@ -81,21 +89,25 @@ func (qe *QueryEngine) fetchControllerResponse(controller string) {
 	defer cancel()
 
 	url := fmt.Sprintf("http://%s/api/overlays/models", controller)
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest("GET", url, http.NoBody)
+
 	if err != nil {
 		log.WithError(err).Warn("Could not query the controller state")
+
 		return
 	}
 
 	resp, err := http.DefaultClient.Do(req.WithContext(ctx))
 	if err != nil {
 		log.WithError(err).Warn("Could not query the controller state")
+
 		return
 	}
 
 	bytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.WithError(err).Warnf("Could not read body of controller response")
+
 		return
 	}
 
@@ -105,6 +117,7 @@ func (qe *QueryEngine) fetchControllerResponse(controller string) {
 	data, err := qe.parseControllerResponse(bytes)
 	if err != nil {
 		log.WithError(err).Warn("Could not parse controller response")
+
 		return
 	}
 
@@ -115,7 +128,7 @@ func (qe *QueryEngine) parseControllerResponse(body []byte) ([]OverlayModelRespo
 	var data []OverlayModelResponseData
 
 	if err := json.Unmarshal(body, &data); err != nil {
-		return data, err
+		return data, fmt.Errorf("failed to unmarshal controller response: %w", err)
 	}
 
 	return data, nil
