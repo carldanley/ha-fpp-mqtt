@@ -5,9 +5,12 @@ name: default
 steps:
 - name: lint-code
   image: golang:alpine
+  environment:
+    GOLINTCI_VERSION: v1.50.1
   commands:
-  - go get golang.org/x/lint/golint
-  - golint -set_exit_status ./
+  - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin ${GOLINTCI_VERSION}
+  - golangci-lint --version
+  - golangci-lint run ./
 
 - name: build-code
   image: golang:alpine
