@@ -82,7 +82,7 @@ func (c Config) GetMQTTClientID() string {
 	clientID := os.Getenv("MQTT_CLIENT_ID")
 
 	if clientID == "" {
-		return "ha-fpp-mqtt"
+		return "alfred-ha-fpp-mqtt"
 	}
 
 	return clientID
