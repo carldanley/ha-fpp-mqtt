@@ -28,7 +28,7 @@ steps:
   - lint-code
 
 - name: publish-container
-  image: banzaicloud/drone-kaniko
+  image: plugins/docker
   settings:
     repo: alfred/ha-fpp-mqtt
     registry: reg.r1p.io
