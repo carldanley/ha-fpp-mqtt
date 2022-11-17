@@ -27,24 +27,24 @@ steps:
   depends_on:
   - lint-code
 
-- name: publish-container
-  image: plugins/docker
-  settings:
-    repo: reg.r1p.io/alfred/ha-fpp-mqtt
-    registry: reg.r1p.io
-    auto_tag: true
-    username:
-      from_secret: docker-username
-    password:
-      from_secret: docker-password
-    build_args:
-    - COMMIT_SHA=${DRONE_COMMIT_SHA}
-    - COMMIT_AUTHOR_EMAIL=${DRONE_COMMIT_AUTHOR_EMAIL}
-  when:
-    ref:
-    - refs/tags/*
-  depends_on:
-  - build-code
+# - name: publish-container
+#   image: plugins/docker
+#   settings:
+#     repo: reg.r1p.io/alfred/ha-fpp-mqtt
+#     registry: reg.r1p.io
+#     auto_tag: true
+#     username:
+#       from_secret: docker-username
+#     password:
+#       from_secret: docker-password
+#     build_args:
+#     - COMMIT_SHA=${DRONE_COMMIT_SHA}
+#     - COMMIT_AUTHOR_EMAIL=${DRONE_COMMIT_AUTHOR_EMAIL}
+#   when:
+#     ref:
+#     - refs/tags/*
+#   depends_on:
+#   - build-code
 
 # - name: deploy
 #   image: appleboy/drone-ssh

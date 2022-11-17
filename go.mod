@@ -1,4 +1,4 @@
-module git.r1p.io/alfred/ha-fpp-mqtt
+module github.com/carldanley/ha-fpp-mqtt
 
 go 1.18
 

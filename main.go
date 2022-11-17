@@ -6,7 +6,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"git.r1p.io/alfred/ha-fpp-mqtt/pkg"
+	"github.com/carldanley/ha-fpp-mqtt/pkg"
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
 )
