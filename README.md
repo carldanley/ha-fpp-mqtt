@@ -2,7 +2,7 @@
 
 > Home Assistant Falcon Player MQTT
 
-[![Build Status](https://ci.r1p.io/api/badges/alfred/ha-fpp-mqtt/status.svg)](https://ci.r1p.io/alfred/ha-fpp-mqtt)
+[![Build Status](https://ci.r1p.io/api/badges/carldanley/ha-fpp-mqtt/status.svg)](https://ci.r1p.io/carldanley/ha-fpp-mqtt)
 
 ## About
 
