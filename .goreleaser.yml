@@ -46,3 +46,18 @@ changelog:
     - '^ci(\(.*\))?:'
     - '^chore(\(.*\))?:'
     - '^build(\(.*\))?:'
+
+dockers:
+- image_templates:
+  - 'ghcr.io/carldanley/ha-fpp-mqtt:v{{ .Version }}'
+  - 'ghcr.io/carldanley/ha-fpp-mqtt:latest'
+  dockerfile: Dockerfile
+  build_flag_templates:
+  - "--label=org.opencontainers.image.created={{.Date}}"
+  - "--label=org.opencontainers.image.name={{.ProjectName}}"
+  - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+  - "--label=org.opencontainers.image.version={{.Version}}"
+  - "--label=org.opencontainers.image.source={{.GitURL}}"
+  - "--label=org.opencontainers.image.licenses=MIT"
+  - "--label=VERSION={{.Version}}"
+  - "--platform=linux/amd64"
