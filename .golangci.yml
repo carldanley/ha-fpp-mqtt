@@ -144,10 +144,3 @@ issues:
   - linters:
     - gocritic
     text: "unnecessaryDefer:"
-
-run:
-  skip-dirs:
-  - test/testdata_etc
-  - internal/cache
-  - internal/renameio
-  - internal/robustio
