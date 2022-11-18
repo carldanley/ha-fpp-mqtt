@@ -9,6 +9,6 @@ RUN zip -r -0 /zoneinfo.zip .
 ENV ZONEINFO /zoneinfo.zip
 
 WORKDIR /
-ADD ha-fpp-mqtt_linux_arm64/ha-fpp-mqtt /bin/
+ADD dist/ha-fpp-mqtt_linux_arm64/ha-fpp-mqtt /bin/
 
 ENTRYPOINT [ "/bin/ha-fpp-mqtt" ]
