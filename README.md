@@ -1,6 +1,6 @@
 # ha-fpp-mqtt
 
-> Home Assistant Falcon Player MQTT
+> **H**ome **A**ssistant **F**alcon **P**layer **MQTT**
 
 [![Build Status](https://ci.r1p.io/api/badges/carldanley/ha-fpp-mqtt/status.svg)](https://ci.r1p.io/carldanley/ha-fpp-mqtt)
 
