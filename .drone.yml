@@ -2,6 +2,14 @@ kind: pipeline
 type: docker
 name: default
 
+services:
+- name: docker
+  image: docker:dind
+  privileged: true
+  volumes:
+  - name: dockersock
+    path: /var/run
+
 steps:
 - name: lint
   image: golang:alpine
@@ -14,48 +22,60 @@ steps:
   - golangci-lint --version
   - golangci-lint run
 
-- name: build
-  image: golang:alpine
+# - name: build
+#   image: golang:alpine
+#   environment:
+#     GITHUB_TOKEN:
+#       from_secret: github-pat-packages
+#   commands:
+#   - apk add git
+#   - git version
+#   - git fetch --tags
+#   - go install github.com/goreleaser/goreleaser@latest
+#   - goreleaser --version
+#   - goreleaser release --rm-dist -f ./.goreleaser.yml
+#   when:
+#     ref:
+#     - refs/tags/*
+#   depends_on:
+#   - lint
+
+# - name: publish-container
+#   image: plugins/docker
+#   settings:
+#     repo: ghcr.io/carldanley/ha-fpp-mqtt
+#     registry: ghcr.io
+#     auto_tag: true
+#     username:
+#       from_secret: github-username
+#     password:
+#       from_secret: github-pat-packages
+#     build_args:
+#     - COMMIT_SHA=${DRONE_COMMIT_SHA}
+#     - COMMIT_AUTHOR_EMAIL=${DRONE_COMMIT_AUTHOR_EMAIL}
+#     platform: linux/amd64
+#     custom_labels:
+#     - org.opencontainers.image.created=${DRONE_BUILD_CREATED}
+#     - org.opencontainers.image.name=${DRONE_REPO_NAME}
+#     - org.opencontainers.image.revision=${DRONE_COMMIT_SHA}
+#     - org.opencontainers.image.version=${DRONE_TAG}
+#     - org.opencontainers.image.source=${DRONE_REPO_LINK}
+#     - org.opencontainers.image.licenses=MIT
+#     - VERSION=${DRONE_TAG}
+
+- name: build-and-publish
+  image: goreleaser/goreleaser
   environment:
     GITHUB_TOKEN:
       from_secret: github-pat-packages
   commands:
-  - apk add git
-  - git version
-  - git fetch --tags
-  - go install github.com/goreleaser/goreleaser@latest
   - goreleaser --version
   - goreleaser release --rm-dist -f ./.goreleaser.yml
+  volumes:
+  - name: dockersock
+    path: /var/run
   when:
     ref:
     - refs/tags/*
   depends_on:
   - lint
-
-- name: publish-container
-  image: plugins/docker
-  settings:
-    repo: ghcr.io/carldanley/ha-fpp-mqtt
-    registry: ghcr.io
-    auto_tag: true
-    username:
-      from_secret: github-username
-    password:
-      from_secret: github-pat-packages
-    build_args:
-    - COMMIT_SHA=${DRONE_COMMIT_SHA}
-    - COMMIT_AUTHOR_EMAIL=${DRONE_COMMIT_AUTHOR_EMAIL}
-    platform: linux/amd64
-    custom_labels:
-    - org.opencontainers.image.created=${DRONE_BUILD_CREATED}
-    - org.opencontainers.image.name=${DRONE_REPO_NAME}
-    - org.opencontainers.image.revision=${DRONE_COMMIT_SHA}
-    - org.opencontainers.image.version=${DRONE_TAG}
-    - org.opencontainers.image.source=${DRONE_REPO_LINK}
-    - org.opencontainers.image.licenses=MIT
-    - VERSION=${DRONE_TAG}
-  when:
-    ref:
-    - refs/tags/*
-  depends_on:
-  - build
