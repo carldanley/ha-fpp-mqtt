@@ -23,7 +23,6 @@ steps:
   - apk add git
   - git version
   - git fetch --tags
-  - git tag --list
   - go install github.com/goreleaser/goreleaser@latest
   - goreleaser --version
   - goreleaser release --rm-dist -f ./.goreleaser.yml
