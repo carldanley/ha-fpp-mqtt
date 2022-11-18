@@ -3,7 +3,7 @@ type: docker
 name: default
 
 steps:
-- name: lint-code
+- name: lint
   image: golang:alpine
   environment:
     GOLINTCI_VERSION: v1.50.1
@@ -14,18 +14,21 @@ steps:
   - golangci-lint --version
   - golangci-lint run
 
-- name: build-code
+- name: build
   image: golang:alpine
   environment:
-    CGO_ENABLED: 0
-    GOOS: linux
+    GITHUB_TOKEN:
+      from_secret: github-pat-packages
   commands:
-  - go build -a -installsuffix cgo -o ha-fpp-mqtt
+  - apk add git
+  - go install github.com/goreleaser/goreleaser@latest
+  - goreleaser --version
+  - goreleaser release --rm-dist -f ./.goreleaser.yml
   when:
     ref:
     - refs/tags/*
   depends_on:
-  - lint-code
+  - lint
 
 # - name: publish-container
 #   image: plugins/docker
