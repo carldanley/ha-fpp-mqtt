@@ -45,14 +45,15 @@ steps:
     build_args:
     - COMMIT_SHA=${DRONE_COMMIT_SHA}
     - COMMIT_AUTHOR_EMAIL=${DRONE_COMMIT_AUTHOR_EMAIL}
-    - --label=org.opencontainers.image.created=${DRONE_BUILD_CREATED}
-    - --label=org.opencontainers.image.name=${DRONE_REPO_NAME}
-    - --label=org.opencontainers.image.revision=${DRONE_COMMIT_SHA}
-    - --label=org.opencontainers.image.version=${DRONE_TAG}
-    - --label=org.opencontainers.image.source=${DRONE_REPO_LINK}
-    - --label=org.opencontainers.image.licenses=MIT
-    - --label=VERSION=${DRONE_TAG}
-    - --platform=linux/amd64
+    platform: linux/amd64
+    custom_labels:
+    - org.opencontainers.image.created=${DRONE_BUILD_CREATED}
+    - org.opencontainers.image.name=${DRONE_REPO_NAME}
+    - org.opencontainers.image.revision=${DRONE_COMMIT_SHA}
+    - org.opencontainers.image.version=${DRONE_TAG}
+    - org.opencontainers.image.source=${DRONE_REPO_LINK}
+    - org.opencontainers.image.licenses=MIT
+    - VERSION=${DRONE_TAG}
   when:
     ref:
     - refs/tags/*

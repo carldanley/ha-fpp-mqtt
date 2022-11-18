@@ -1,5 +1,7 @@
 FROM alpine
 
+LABEL org.opencontainers.image.source https://github.com/carldanley/ha-fpp-mqtt
+
 RUN apk upgrade --no-cache \
   && apk --no-cache add \
     tzdata zip ca-certificates
