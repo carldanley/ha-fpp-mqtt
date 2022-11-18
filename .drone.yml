@@ -21,6 +21,8 @@ steps:
       from_secret: github-pat-packages
   commands:
   - apk add git
+  - git version
+  - git tag --list
   - go install github.com/goreleaser/goreleaser@latest
   - goreleaser --version
   - goreleaser release --rm-dist -f ./.goreleaser.yml
