@@ -57,4 +57,4 @@ steps:
     ref:
     - refs/tags/*
   depends_on:
-  - build-code
+  - build
