@@ -70,10 +70,13 @@ steps:
 - name: build-and-publish
   image: goreleaser/goreleaser
   environment:
+    GITHUB_USERNAME:
+      from_secret: github-username
     GITHUB_TOKEN:
       from_secret: github-pat-packages
   commands:
   - git fetch --tags
+  - docker login -u $GITHUB_USERNAME -p $GITHUB_TOKEN
   - goreleaser --version
   - goreleaser release --rm-dist -f ./.goreleaser.yml
   volumes:
