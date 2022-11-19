@@ -76,7 +76,7 @@ steps:
       from_secret: github-pat-packages
   commands:
   - git fetch --tags
-  - docker login -u ${GITHUB_USERNAME} -p ${GITHUB_TOKEN}
+  - echo $GITHUB_TOKEN | docker login -u $GITHUB_USERNAME --password-stdin
   - goreleaser --version
   - goreleaser release --rm-dist -f ./.goreleaser.yml
   volumes:
