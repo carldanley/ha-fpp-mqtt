@@ -79,16 +79,17 @@ func (mc *MQTTClient) getTopic(postfix string) string {
 }
 
 func (mc *MQTTClient) onMessage(client MQTT.Client, msg MQTT.Message) {
-	const ExpectedMessageParts = 3
+	const ExpectedMessageParts = 2
 
-	topicParts := strings.Split(msg.Topic(), "/")
+	topic := strings.Replace(msg.Topic(), fmt.Sprintf("%s/", mc.topicPrefix), "", 1)
+	topicParts := strings.Split(topic, "/")
 
 	if len(topicParts) != ExpectedMessageParts {
 		return
 	}
 
-	slug := topicParts[2]
-	method := topicParts[3]
+	slug := topicParts[0]
+	method := topicParts[1]
 	payload := LightMessage{}
 
 	if err := json.Unmarshal(msg.Payload(), &payload); err != nil {
