@@ -1,5 +1,11 @@
 ---
 linters-settings:
+  depguard:
+    rules:
+      main:
+        deny:
+        - pkg: github.com/pkg/errors
+          desc: "use stdlib instead"
   dupl:
     threshold: 200
   funlen:
