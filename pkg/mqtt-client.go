@@ -59,6 +59,9 @@ func (mc *MQTTClient) getMQTTClient(host string, port int, clientID, username, p
 
 func (mc *MQTTClient) OnClientDisconnect(client MQTT.Client, err error) {
 	mc.Log.Info("Disconnected from MQTT host")
+
+	// cache this new client for later
+	mc.client = client
 }
 
 func (mc *MQTTClient) OnClientConnect(client MQTT.Client) {
@@ -79,6 +82,9 @@ func (mc *MQTTClient) getTopic(postfix string) string {
 }
 
 func (mc *MQTTClient) onMessage(client MQTT.Client, msg MQTT.Message) {
+	// cache this new mqtt client for later
+	mc.client = client
+
 	const ExpectedMessageParts = 2
 
 	topic := strings.Replace(msg.Topic(), fmt.Sprintf("%s/", mc.topicPrefix), "", 1)

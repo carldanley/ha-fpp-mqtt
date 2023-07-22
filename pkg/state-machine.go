@@ -1,6 +1,8 @@
 package pkg
 
 import (
+	"fmt"
+
 	"github.com/iancoleman/strcase"
 	"golang.org/x/sync/syncmap"
 )
@@ -19,7 +21,7 @@ type StateMachine struct {
 type OnStateChange func(string, OverlayModel)
 
 func (sm *StateMachine) GenerateSlug(controller, name string) string {
-	return strcase.ToSnake(name)
+	return fmt.Sprintf("%s-%s", strcase.ToSnake(controller), strcase.ToSnake(name))
 }
 
 func (sm *StateMachine) createNewCopy(slug, name string, state bool, rgbColor []int) (newCopy, oldCopy OverlayModel) {
