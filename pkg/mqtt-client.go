@@ -58,7 +58,7 @@ func (mc *MQTTClient) getMQTTClient(host string, port int, clientID, username, p
 }
 
 func (mc *MQTTClient) OnClientDisconnect(client MQTT.Client, err error) {
-	mc.Log.Info("Disconnected from MQTT host")
+	mc.Log.WithError(err).Info("Disconnected from MQTT host")
 
 	// cache this new client for later
 	mc.client = client
