@@ -27,10 +27,8 @@ steps:
   - golangci-lint run
 
 - name: build-and-publish
-  image: goreleaser/goreleaser
+  image: ghcr.io/goreleaser/goreleaser:v1.19.2
   environment:
-    GITHUB_USERNAME:
-      from_secret: github-username
     GITHUB_TOKEN:
       from_secret: github-pat-packages
   commands:
