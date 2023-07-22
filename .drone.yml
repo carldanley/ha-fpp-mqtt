@@ -37,7 +37,7 @@ steps:
   - git fetch --tags
   - echo $GITHUB_TOKEN | docker login ghcr.io -u $GITHUB_USERNAME --password-stdin
   - goreleaser --version
-  - goreleaser release --rm-dist -f ./.goreleaser.yml
+  - goreleaser release --clean -f ./.goreleaser.yml
   volumes:
   - name: dockersock
     path: /var/run
