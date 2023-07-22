@@ -1,0 +1,11 @@
+Main:
+  files:
+  - $all
+  - "!$test"
+  allow:
+  - $gostd
+  - github.com/eclipse/paho.mqtt.golang
+  - github.com/sirupsen/logrus
+  - github.com/iancoleman/strcase
+  - github.com/carldanley/ha-fpp-mqtt
+  - github.com/joho/godotenv
