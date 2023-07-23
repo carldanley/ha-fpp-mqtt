@@ -33,7 +33,7 @@ steps:
       from_secret: github-pat-packages
   commands:
   - git fetch --tags
-  - echo $GITHUB_TOKEN | docker login ghcr.io -u $GITHUB_USERNAME --password-stdin
+  - docker login ghcr.io -u $GITHUB_USERNAME -p $(echo $GITHUB_TOKEN)
   - goreleaser --version
   - goreleaser release --clean -f ./.goreleaser.yml
   volumes:
