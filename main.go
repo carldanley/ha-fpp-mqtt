@@ -66,6 +66,8 @@ func main() {
 		cfg.MQTTUsername, cfg.MQTTPassword, cfg.MQTTTopicPrefix,
 	)
 
+	defer mqttClient.Stop()
+
 	// create a new state machine
 	stateMachine := pkg.StateMachine{
 		Callback: mqttClient.PublishOverlayModelStatus,
@@ -79,6 +81,8 @@ func main() {
 		Log:          log.WithField("component", "queryEngine"),
 	}
 
+	defer queryEngine.Stop()
+
 	// startup the query engine
 	if err := queryEngine.Start(); err != nil {
 		log.WithError(err).Fatal("Could not start query engine")
@@ -91,8 +95,4 @@ func main() {
 
 	// wait for an interrupt signal
 	<-signalChannel
-
-	// shut down everything else
-	queryEngine.Stop()
-	mqttClient.Stop()
 }
