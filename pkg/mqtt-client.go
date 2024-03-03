@@ -142,7 +142,8 @@ func (mc *MQTTClient) HandleSetLightMessage(slug string, payload LightMessage) {
 		return
 	}
 
-	currentStateObj, exists := mc.stateMachine.OverlayModels.Load(slug)
+	keyLookup := mc.stateMachine.GenerateSlug(payload.Controller, slug)
+	currentStateObj, exists := mc.stateMachine.OverlayModels.Load(keyLookup)
 	if !exists {
 		mc.Log.Debug("Skipping set with no cache available")
 
@@ -169,7 +170,14 @@ func (mc *MQTTClient) HandleSetLightMessage(slug string, payload LightMessage) {
 		color = fmt.Sprintf("#%02x%02x%02x", payload.RGBColor[0], payload.RGBColor[1], payload.RGBColor[2])
 	}
 
-	topic := fmt.Sprintf("falcon/player/%s/set/command", payload.Controller)
+	// this is an interesting one... at some point falcon player disallowed the mqtt player name to have
+	// a period in it. so, as a result, when you try to send the command to the controller name specified
+	// everywhere, it can't be a dns name - so this split drops the latter parts and uses what we guess
+	// will be the mqtt host name
+	controllerParts := strings.Split(payload.Controller, ".")
+
+	// controller parts should always have a length of at least 1
+	topic := fmt.Sprintf("falcon/player/%s/set/command", controllerParts[0])
 	message := FalconMessage{
 		Command: "Overlay Model Fill",
 		Args: []string{
