@@ -17,12 +17,9 @@ const LogLevelInfo = 2
 const LogLevelDebug = 3
 
 func main() {
-	var signalChannel chan os.Signal
-
-	var log *logrus.Logger
 
 	// create our channel for signal interrupts
-	signalChannel = make(chan os.Signal, 1)
+	signalChannel := make(chan os.Signal, 1)
 	signal.Notify(signalChannel, os.Interrupt, syscall.SIGINT)
 
 	// setup the logging level & controller list (csv)
@@ -30,7 +27,7 @@ func main() {
 	flag.Parse()
 
 	// create a new logger
-	log = logrus.New()
+	log := logrus.New()
 	log.SetOutput(os.Stdout)
 	// set the log level
 	if *logLevel == LogLevelError {
