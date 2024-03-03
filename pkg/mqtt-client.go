@@ -218,6 +218,12 @@ func (mc *MQTTClient) PublishOverlayModelStatus(slug string, model OverlayModel)
 
 	mc.Log.Infof("Publishing light update: %s", model.Name)
 
+	// we don't want the controller prefixed here, drop it from the slug
+	slugParts := strings.Split(slug, "-")
+	if len(slugParts) > 1 {
+		slug = slugParts[1]
+	}
+
 	data, _ := json.Marshal(payload)
 	topic := mc.getTopic(fmt.Sprintf("%s/status", slug))
 
