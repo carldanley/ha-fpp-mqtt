@@ -144,6 +144,7 @@ func (mc *MQTTClient) HandleSetLightMessage(slug string, payload LightMessage) {
 
 	keyLookup := mc.stateMachine.GenerateSlug(payload.Controller, slug)
 	currentStateObj, exists := mc.stateMachine.OverlayModels.Load(keyLookup)
+
 	if !exists {
 		mc.Log.Debug("Skipping set with no cache available")
 
